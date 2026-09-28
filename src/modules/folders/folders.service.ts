@@ -4,23 +4,16 @@ import { assets, folders } from '../../db/schema';
 import { BadRequest, Conflict, NotFound } from '../../lib/errors';
 import { CreateFolderInput, UpdateFolderInput } from './folders.schema';
 
-// The frontend's own maxFolderDepth constant (dashboard_page.dart) — kept
-// in sync deliberately rather than trusting the client to enforce it.
 export const MAX_FOLDER_DEPTH = 3;
 
 async function getOwnedFolder(userId: string, folderId: string) {
   const folder = await db.query.folders.findFirst({
     where: and(eq(folders.id, folderId), eq(folders.userId, userId)),
   });
-  // A folder that exists but belongs to someone else looks identical to
-  // one that doesn't exist at all — see README "Authorization rules".
   if (!folder) throw NotFound('Folder not found.');
   return folder;
 }
 
-// 1 for a top-level folder, 2 for its child, and so on. Depth is capped
-// at MAX_FOLDER_DEPTH, so this loop runs at most a few times — no need
-// for a recursive SQL query.
 async function depthOf(userId: string, folderId: string): Promise<number> {
   let depth = 1;
   let current = await getOwnedFolder(userId, folderId);
@@ -31,8 +24,6 @@ async function depthOf(userId: string, folderId: string): Promise<number> {
   return depth;
 }
 
-// True if `candidateParentId` is `folderId` itself, or a descendant of
-// it — either would make the tree circular if allowed.
 async function wouldCreateCycle(userId: string, folderId: string, candidateParentId: string): Promise<boolean> {
   if (candidateParentId === folderId) return true;
   let current = await getOwnedFolder(userId, candidateParentId);
@@ -62,7 +53,7 @@ export async function createFolder(userId: string, input: CreateFolderInput) {
 }
 
 export async function updateFolder(userId: string, folderId: string, input: UpdateFolderInput) {
-  await getOwnedFolder(userId, folderId); // 404 if missing or not theirs
+  await getOwnedFolder(userId, folderId); 
 
   if (input.parentId) {
     if (await wouldCreateCycle(userId, folderId, input.parentId)) {
@@ -82,10 +73,6 @@ export async function updateFolder(userId: string, folderId: string, input: Upda
   return folder;
 }
 
-// "Block deletion if the folder is not empty" — the choice documented in
-// README.md "Tradeoffs". A folder counts as empty when it has no child
-// folders and no *live* (non-trashed) assets; already-trashed assets
-// don't block cleanup elsewhere in the tree.
 export async function deleteFolder(userId: string, folderId: string) {
   await getOwnedFolder(userId, folderId);
 

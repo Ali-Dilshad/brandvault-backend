@@ -13,8 +13,6 @@ export const createBrandSchema = z.object({
   fontName: z.string().trim().min(1).optional().nullable(),
 });
 
-// Every field optional for PATCH — but a field that IS present must still
-// be valid (a half-updated brand is worse than a rejected request).
 export const updateBrandSchema = createBrandSchema.partial();
 
 export type CreateBrandInput = z.infer<typeof createBrandSchema>;

@@ -11,11 +11,16 @@ import { assetsRouter } from './modules/assets/assets.controller';
 export const app = express();
 
 app.use(
+  // cors({
+  //   origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()),
+  //   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  //   allowedHeaders: ['Authorization', 'Content-Type'],
+  // }),
   cors({
-    origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()),
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
-  }),
+  origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim()),
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+}),
 );
 app.use(express.json());
 

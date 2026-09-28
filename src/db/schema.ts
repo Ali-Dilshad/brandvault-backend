@@ -1,14 +1,3 @@
-// Drizzle schema for BrandVault.
-//
-// Design notes (see README.md "Data model" for the full explanation):
-// - No separate `workspaces` table: the assignment allows "one workspace
-//   per signed-in user", so `userId` on every table IS the workspace
-//   scope. Every query in the app is filtered by it — that's what makes
-//   cross-user access impossible, not a separate access-control layer.
-// - `deletedAt` on `assets` implements soft delete / Trash. There is no
-//   `deletedAt` on `folders`: folder deletion is blocked while it still
-//   has children or live assets (see README "Tradeoffs" for why that
-//   choice, not cascading soft-deletes, was made).
 import { pgTable, pgEnum, text, timestamp, uniqueIndex, index, foreignKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
@@ -44,9 +33,6 @@ export const folders = pgTable('folders', {
   id: id(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
-  // Self-relation for nesting. onDelete: 'restrict' is a DB-level backstop:
-  // even if the application check were ever bypassed, Postgres itself
-  // refuses to delete a folder that still has children.
   parentId: text('parent_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -62,8 +48,6 @@ export const assets = pgTable('assets', {
   name: text('name').notNull(),
   type: assetTypeEnum('type').notNull(),
   url: text('url').notNull(),
-  // SetNull, not Restrict, on purpose: deleting a folder that only
-  // contains already-trashed assets should still succeed.
   folderId: text('folder_id').references(() => folders.id, { onDelete: 'set null' }),
   tags: text('tags').array().notNull().default([]),
   description: text('description'),

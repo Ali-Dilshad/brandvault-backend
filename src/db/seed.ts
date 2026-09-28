@@ -1,9 +1,3 @@
-// Seeds the demo account the assignment asks for: demo@brandvault.dev /
-// Demo1234!, plus a brand kit, a couple of nested folders, and a few
-// sample assets — enough that a first-time reviewer sees a populated
-// library immediately, not an empty one. Safe to re-run: it skips
-// creating the user (and everything under it) if the demo account
-// already exists, rather than erroring or duplicating data.
 import dotenv from 'dotenv';
 dotenv.config();
 import { eq } from 'drizzle-orm';
@@ -17,6 +11,7 @@ async function main() {
   if (existing) {
     console.log(`Demo account ${env.DEMO_EMAIL} already exists — nothing to do.`);
     return;
+    
   }
 
   const passwordHash = await hashPassword(env.DEMO_PASSWORD);

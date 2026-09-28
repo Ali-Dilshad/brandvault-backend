@@ -7,8 +7,6 @@ export const createFolderSchema = z.object({
 
 export const updateFolderSchema = z.object({
   name: z.string().trim().min(1).optional(),
-  // Explicit null clears the parent (moves the folder to the top level) —
-  // same "present vs. null vs. absent" convention as the asset move route.
   parentId: z.string().min(1).nullable().optional(),
 });
 

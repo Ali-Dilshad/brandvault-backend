@@ -1,6 +1,3 @@
-// One-off script: applies every .sql file in drizzle/ that hasn't run yet,
-// tracked in drizzle's own __drizzle_migrations table. Used by `npm run
-// db:migrate` locally and as the deploy step in production.
 import dotenv from 'dotenv';
 dotenv.config();
 import { drizzle } from 'drizzle-orm/node-postgres';

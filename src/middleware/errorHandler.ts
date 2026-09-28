@@ -1,7 +1,3 @@
-// The one place that turns a thrown error into an HTTP response.
-// AppError -> its own statusCode and message (safe to show the user).
-// Anything else -> logged server-side, 500 with a generic message (never
-// leak a raw stack trace or DB error string to the client).
 import { ErrorRequestHandler } from 'express';
 import { AppError } from '../lib/errors';
 import { ZodError } from 'zod';

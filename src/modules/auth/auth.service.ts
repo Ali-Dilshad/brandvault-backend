@@ -21,9 +21,6 @@ export async function signUp({ email, password }: Credentials) {
 
 export async function signIn({ email, password }: Credentials) {
   const user = await db.query.users.findFirst({ where: eq(users.email, email) });
-  // Same message whether the email doesn't exist or the password is
-  // wrong — confirming which one it was would let an attacker enumerate
-  // registered emails.
   if (!user) throw Unauthorized('Incorrect email or password.');
 
   const valid = await verifyPassword(password, user.passwordHash);

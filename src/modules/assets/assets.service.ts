@@ -13,7 +13,6 @@ async function assertFolderOwned(userId: string, folderId: string) {
   return folder;
 }
 
-
 async function getOwnedAsset(userId: string, assetId: string) {
   const asset = await db.query.assets.findFirst({ where: and(eq(assets.id, assetId), eq(assets.userId, userId)) });
   if (!asset) throw NotFound('Asset not found.');
@@ -22,7 +21,7 @@ async function getOwnedAsset(userId: string, assetId: string) {
 
 async function getOwnedLiveAsset(userId: string, assetId: string) {
   const asset = await getOwnedAsset(userId, assetId);
-  if (asset.deletedAt) throw NotFound('Asset not found.'); // trashed items aren't editable via this route
+  if (asset.deletedAt) throw NotFound('Asset not found.');
   return asset;
 }
 
@@ -38,7 +37,6 @@ export async function listAssets(userId: string, query: ListAssetsQuery) {
 
 export async function createAsset(userId: string, input: CreateAssetInput) {
   if (input.folderId) await assertFolderOwned(userId, input.folderId);
-
   const [asset] = await db.insert(assets).values({ userId, ...input }).returning();
   return asset;
 }

@@ -1,7 +1,3 @@
-// Runs on every route except /auth/signup and /auth/signin. Reads the
-// Bearer token, verifies it, and attaches { id, email } to req.user.
-// Every other module trusts req.user without re-checking it — this is
-// the one place that decides whether a request is authenticated at all.
 import { RequestHandler } from 'express';
 import { verifyToken } from '../lib/jwt';
 import { Unauthorized } from '../lib/errors';
