@@ -1,6 +1,3 @@
-// Loads and validates every environment variable the app needs, once, at
-// startup. If something required is missing or malformed, the app fails
-// immediately with a clear message instead of crashing later mid-request.
 import dotenv from 'dotenv';
 dotenv.config();
 import { z } from 'zod';
@@ -11,9 +8,12 @@ const schema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   PORT: z.coerce.number().int().positive().default(4000),
   CORS_ORIGIN: z.string().min(1, 'CORS_ORIGIN is required (comma-separate multiple origins)'),
-  AI_PROVIDER: z.enum(['mock', 'openai', 'anthropic']).default('mock'),
+  AI_PROVIDER: z.enum(['mock', 'openai', 'anthropic', 'gemini', 'groq']).default('mock'),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default('openai/gpt-oss-120b'),
   N8N_WEBHOOK_URL: z.string().optional(),
   DEMO_EMAIL: z.string().default('demo@brandvault.dev'),
   DEMO_PASSWORD: z.string().default('Demo1234!'),
@@ -30,13 +30,19 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
-// A provider is only usable if its key is actually set — catch this at
-// boot, not on the first real AI request from a user.
 if (env.AI_PROVIDER === 'openai' && !env.OPENAI_API_KEY) {
   console.error('AI_PROVIDER=openai requires OPENAI_API_KEY to be set.');
   process.exit(1);
 }
 if (env.AI_PROVIDER === 'anthropic' && !env.ANTHROPIC_API_KEY) {
   console.error('AI_PROVIDER=anthropic requires ANTHROPIC_API_KEY to be set.');
+  process.exit(1);
+}
+if (env.AI_PROVIDER === 'gemini' && !env.GEMINI_API_KEY) {
+  console.error('AI_PROVIDER=gemini requires GEMINI_API_KEY to be set.');
+  process.exit(1);
+}
+if (env.AI_PROVIDER === 'groq' && !env.GROQ_API_KEY) {
+  console.error('AI_PROVIDER=groq requires GROQ_API_KEY to be set.');
   process.exit(1);
 }

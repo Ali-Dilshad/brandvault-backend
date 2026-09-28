@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+
 export const aiSuggestionSchema = z.object({
   tags: z
     .array(z.string().trim().min(1).max(30))
