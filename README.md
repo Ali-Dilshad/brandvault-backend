@@ -1,11 +1,11 @@
 # BrandVault API
 
-REST API for BrandVault, a brand kit and asset library. The web app is in [brandvault-frontend](<frontend-repo-url>).
+REST API for BrandVault, a brand kit and asset library. The web app is in [brandvault-frontend](<https://github.com/Ali-Dilshad/brandvault-frontend.git>).
+
 
 ## Live demo
 
-- API: `<>` 
-- App: `<>`
+- App: `https://brandvault-klepon-90763.netlify.app` (the API runs on a free tier and sleeps when idle, so the first load can take up to a minute)
 - Demo login: `demo@brandvault.dev` / `Demo1234!`, or click "Continue as demo" on the login page
 
 The API runs on a free hosting plan that sleeps when idle, so the first request after a pause can take up to a minute.
@@ -21,6 +21,7 @@ The API runs on a free hosting plan that sleeps when idle, so the first request 
 | Auth | JWT, bcryptjs |
 | Validation | Zod |
 | AI | Groq |
+| Automation | n8n (webhook bonus) |
 | Tests | Vitest, Supertest |
 | Hosting | Render |
 
@@ -144,6 +145,25 @@ A folder cannot be deleted while it has subfolders or active assets. The API ret
 - Review before save: the app shows the suggestion first and only calls the save endpoint when the user confirms.
 - The API key is read from the server environment and never reaches the client.
 
+## n8n webhook (bonus)
+
+The API sends a POST request to `N8N_WEBHOOK_URL` when one of three events happens: an AI tag suggestion is saved, an asset is restored from Trash, or the brand kit is updated.
+
+- Events: `ai_tags_saved`, `asset_restored`, `brand_updated`
+- Payload:
+```json
+  {
+    "event": "asset_restored",
+    "timestamp": "2026-09-29T12:00:00.000Z",
+    "assetId": "...",
+    "userEmail": "user@example.com"
+  }
+```
+  `brand_updated` sends `brandId` instead of `assetId`.
+- Workflow file: `n8n/brandvault-webhook.json` — a Webhook trigger into a Set node that builds a one-line summary (`<event>: <id> by <email> at <timestamp>`), visible in n8n's execution log. This satisfies the brief's "receive the webhook and send an email/log notification."
+- Running on n8n Cloud's free trial. Verified directly: posting the exact payload shape the backend sends to the production webhook URL succeeds, and the execution log shows the correct summary extracted from it. The three call sites in the code (`restoreAsset`, `saveAiTags`, `updateBrand`) are deployed and live.
+- Delivery is fire-and-forget with a 5-second timeout — a slow or unreachable webhook never blocks the actual request, and `sendWebhook()` does nothing at all if `N8N_WEBHOOK_URL` is unset.
+
 ## Testing
 
 ```bash
@@ -185,6 +205,7 @@ src/
   middleware/       auth, validation, error handler
   modules/          auth, brand, folders, assets, ai
 prompts/            asset-tagging.md
+n8n/                brandvault-webhook.json
 drizzle/            SQL migrations
 tests/              Vitest and Supertest
 ```
@@ -200,10 +221,12 @@ tests/              Vitest and Supertest
 - `GET /assets` is not paginated.
 - There is no activity log.
 - The free hosting plan sleeps when idle.
+- The n8n webhook runs on a 14-day free trial and will stop working once that expires.
 
 ## Next improvements
 
 1. Rate limiting on `/auth/*` and the AI endpoint.
-2. File upload to Supabase Storage or S3 for assets and the brand logo.
+2. Real file upload to Supabase Storage or S3, for assets and the brand logo, instead of URL-only fields.
 3. Pagination and a `folderId` filter on `GET /assets`.
-4. Media upload option.
+4. A retry when the AI provider returns invalid JSON, before failing with a 502.
+5. The n8n bonus fully self-hosted, avoiding the 14-day Cloud trial limit.
