@@ -4,8 +4,8 @@ REST API for BrandVault, a brand kit and asset library. The web app is in [brand
 
 ## Live demo
 
-- API: `<your-api-url>` (health check: `<your-api-url>/health`)
-- App: `<your-app-url>`
+- API: `<>` 
+- App: `<>`
 - Demo login: `demo@brandvault.dev` / `Demo1234!`, or click "Continue as demo" on the login page
 
 The API runs on a free hosting plan that sleeps when idle, so the first request after a pause can take up to a minute.
@@ -206,3 +206,4 @@ tests/              Vitest and Supertest
 1. Rate limiting on `/auth/*` and the AI endpoint.
 2. File upload to Supabase Storage or S3 for assets and the brand logo.
 3. Pagination and a `folderId` filter on `GET /assets`.
+4. Media upload option.
